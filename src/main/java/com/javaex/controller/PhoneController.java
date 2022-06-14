@@ -2,6 +2,7 @@ package com.javaex.controller;
 
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -10,117 +11,148 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import com.javaex.dao.PhoneDao;
+import com.javaex.service.PhoneService;
 import com.javaex.vo.PersonVo;
 
 @Controller
 public class PhoneController {
 
 	// 필드
+	@Autowired
+	private PhoneService phoneService;
 
 	// 생성자
 
-	// 메서드 getter/setter
+	// 메소드-gs
 
-	// 메서드 일반
-	// 전화번호 삭제
-	/*
-	@RequestMapping(value="/delete", method={RequestMethod.GET, RequestMethod.POST})
-	public String delete(@RequestParam("no") int no) {
-		System.out.println("PhoneController>delete()");
-		
-		//파라미터 꺼내기
-		System.out.println(no);
-		
-		//Dao로 처리하기(삭제)
-		PhoneDao phoneDao = new PhoneDao();
-		int count = phoneDao.personDelete(no);
-		System.out.println(count);
-		
-				
-		return"redirect:/list";
-	}
-	*/
-	
-	@RequestMapping(value="/delete/{no}", method={RequestMethod.GET, RequestMethod.POST})
-	public String delete(@PathVariable("no") int num) {
-		System.out.println("PhoneController>delete()");
-		
-		//파라미터 꺼내기
-		System.out.println(num);
-		
-		//dao로 처리하기
-		PhoneDao phoneDao = new PhoneDao();
-		int count = phoneDao.personDelete(num);
-		System.out.println(count);
-		
-		return"redirect:/list";
-	}
-	
+	// 메소드-일반
+
 	// 전화번호 리스트
-	@RequestMapping(value="/list", method={RequestMethod.GET, RequestMethod.POST})
-	public String list(Model model){
+	@RequestMapping(value = "/list", method = { RequestMethod.GET, RequestMethod.POST })
+	public String list(Model model) {
 		System.out.println("PhoneController>list()");
-	
-	//dao를 통해서 personList(주소)를 가져온다
-	PhoneDao phoneDao = new PhoneDao();
-	List<PersonVo> personList = phoneDao.getPersonList();
-	
-	//ds(dispatcher servlet)으로 데이터 보내기 --> request attribute 에 넣는다
-	model.addAttribute("personList", personList);//실제로 보여지는 것(파일)없음, 자동 처리
-	
-	return "/WEB-INF/views/list.jsp";
-	}
-	
-	// 전화번호 등록
-	@RequestMapping(value="/write", method={RequestMethod.GET, RequestMethod.POST})
-	public String write(@ModelAttribute PersonVo personVo, @RequestParam("age") int age,
-														   @RequestParam("name") String name) {
-		System.out.println("PhoneController>write()");
-		
-		/*
-		//파라미터 꺼내기
-		System.out.println(name);
-		System.out.println(hp);
-		System.out.println(company);
-		
-		//vo로 묶기
-		PersonVo personVo = new PersonVo(name, hp, company);
-		System.out.println(personVo);
-		*/
-		 System.out.println(personVo);
-		 
-		//dao로 저장
-		PhoneDao phoneDao = new PhoneDao();
-		int count = phoneDao.personInsert(personVo);
-		System.out.println(count);
-		
-		//리다이렉트
-		//리스트로 리다이렉트 시킬 예정
-		return "redirect:/list";
-		
+
+		// Service를 통해서 personList(주소)을 가져온다
+		// PhoneService phoneService = new PhoneService() X;
+		List<PersonVo> personList = phoneService.getPersonList();
+		System.out.println(personList);
+
+		// ds 데이터보내기 -->request attribute에 넣는다
+		model.addAttribute("personList", personList); //->실제로 보여지는것없음, 자동처리
+
+		return "list";
+
 	}
 
 	// 전화번호 등록 폼
 	@RequestMapping(value = "/writeForm", method = { RequestMethod.GET, RequestMethod.POST })
 	public String writeForm() {
-
 		System.out.println("PhoneController>writeForm()");
 
-		return "/WEB-INF/views/writeForm.jsp";
-
+		return "writeForm";
 	}
 
-	// 테스트
-	@RequestMapping(value = "/test", method = { RequestMethod.GET, RequestMethod.POST })
+	// 전화번호 등록(@ModelAttribute 사용)
+	@RequestMapping(value = "/write", method = { RequestMethod.GET, RequestMethod.POST })
+	public String write(@ModelAttribute PersonVo personVo) {
 
-	public String test() {
+		System.out.println("PhoneController>write()");
 
-		System.out.println("PhoneController>test()");
+		// Service를 통해서 저장한다
+		int count = phoneService.personInsert(personVo);
 
-		// 다오
-		return "/WEB-INF/views/test.jsp"; // 포워딩까지 한꺼번에 처리함!
+		// 리다이렉트
+		return "redirect:/list";
+	}
 
+	// 전화번호 등록(파라미터 사용)
+	@RequestMapping(value="/write2", method={RequestMethod.GET, RequestMethod.POST})
+	public String write2(@RequestParam("name") String name, 
+					    @RequestParam("hp") String hp,
+					    @RequestParam("company") String company) {
+		
+		System.out.println("PhoneController>write2()");
+		
+		//파라미터 꺼내기
+		/*
+		System.out.println(name);
+		System.out.println(hp);
+		System.out.println(company);
+		*/
+		
+		//vo로 묶기
+		PersonVo personVo = new PersonVo(name, hp, company);
+		System.out.println(personVo);
+		
+		// Service를 통해서 저장한다
+		int count = phoneService.personInsert(personVo);
+		System.out.println(count);
+		
+		//리다이렉트
+		return "redirect:/list";
+	}
+	
+	
+	// 전화번호 삭제
+	@RequestMapping(value = "/delete", method = { RequestMethod.GET, RequestMethod.POST })
+	public String delete(@RequestParam("no") int no) {
+		System.out.println("PhoneController>delete()");
+
+		// 파라미터 꺼내기
+		System.out.println(no);
+
+		// Service를 통해서 삭제한다
+		int count = phoneService.personDelete(no);
+
+		return "redirect:/list";
+	}
+
+	
+	//전화번호 삭제(@PathVariable 사용)
+	@RequestMapping(value="/delete2/{no}", method={RequestMethod.GET, RequestMethod.POST})
+	public String delete2(@PathVariable("no") int num) {
+		System.out.println("PhoneController>delete()");
+		
+		//주소에서 값 꺼내기
+		System.out.println(num);
+		
+		// Service를 통해서 삭제한다
+		int count = phoneService.personDelete(num);
+		System.out.println(count);
+		
+		return "redirect:/list";
+	}
+	
+	
+	// 전화번호 수정폼
+	@RequestMapping(value = "/updateForm", method = { RequestMethod.GET, RequestMethod.POST })
+	public String updateForm(Model model, @RequestParam("no") int no) {
+		System.out.println("PhoneController>updateForm()");
+
+		// 주소에서 값 꺼내기
+		System.out.println(no);
+
+		// Service를 통해서 1명정보 가져오기
+		PersonVo personVo = phoneService.getPerson(no);
+
+		// ds 데이터보내기 -->request attribute에 넣는다
+		model.addAttribute("personVo", personVo);
+
+		return "updateForm";
+	}
+
+	// 전화번호 수정
+	@RequestMapping(value = "/update", method = { RequestMethod.GET, RequestMethod.POST })
+	public String updateForm(Model model, @ModelAttribute PersonVo personVo) {
+		System.out.println("PhoneController>update()");
+
+		// 파라미터 꺼내기+vo로 묶기를 DS해서 메소드의 파라미터로 보내준다
+		System.out.println(personVo);
+
+		// Service를 통해서 수정하기
+		int count = phoneService.personUpdate(personVo);
+
+		return "redirect:/list";
 	}
 
 }

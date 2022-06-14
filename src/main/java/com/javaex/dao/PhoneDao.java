@@ -8,8 +8,11 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.stereotype.Repository;
+
 import com.javaex.vo.PersonVo;
 
+@Repository
 public class PhoneDao {
 
 	// 0. import java.sql.*;
@@ -143,7 +146,7 @@ public class PhoneDao {
 
 	}
 
-	// 사람 수정
+	// 사람 수정(업데이트)
 	public int personUpdate(PersonVo personVo) {
 		int count = 0;
 		getConnection();
